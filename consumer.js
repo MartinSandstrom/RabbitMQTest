@@ -1,17 +1,22 @@
-
 var amqp = require('amqp');
+var sys = require("sys");
 
+var stdin = process.openStdin();
 var connection = amqp.createConnection({host: 'localhost'});
 
 var queueToReceiveFrom = "myQueue";
+var queueToSendTo = "mySecondQueue";
 
-connection.on('ready',function() {
+connection.on('ready', function() {
 		connection.queue(queueToReceiveFrom,{autoDelete: false},function(queue) {
 
-  				console.log('Waiting messages...');
-
-  				queue.subscribe(function(messageReceived)	{
-              	console.log("Received message: "+ messageReceived.data.toString());
-          });
+				queue.subscribe(function(messageReceived)	{
+        	  console.log("Received message: "+ messageReceived.data.toString());
+        });
     });
+});
+
+
+stdin.addListener("data", function(d) {
+    connection.publish(queueToSendTo,d);
 });
